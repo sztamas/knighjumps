@@ -234,7 +234,7 @@
         } else {
           this.drawPaths(this.pathsToShow.slice(this.pathsToShowIdx, this.pathsToShowIdx + 1 || 9e9));
         }
-        if (this.pathsToShowIdx2 < 30) {
+        if (this.pathsToShowIdx2 < 100) {
           return this.pathsToShowIdx2 += 1;
         } else {
           if (this.pathsToShowIdx >= this.pathsToShow.length - 1) {

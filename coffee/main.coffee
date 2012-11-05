@@ -130,7 +130,7 @@ class BoardView
         @drawPaths @pathsToShow
       else
         @drawPaths @pathsToShow[@pathsToShowIdx..@pathsToShowIdx]
-      if @pathsToShowIdx2 < 30
+      if @pathsToShowIdx2 < 100
         @pathsToShowIdx2 += 1
       else
         if @pathsToShowIdx >= @pathsToShow.length-1
