@@ -76,6 +76,7 @@ class BoardView
     @board = board
     @canvas = document.getElementById elementId
     @canvas.onmousedown = @onMouseDown
+    @canvas.onmousemove = @onMouseMove
     @canvas.onmouseup = @onMouseUp
     @canvas.ondblclick = @onDblClick
     @context = @canvas.getContext '2d'
@@ -113,10 +114,16 @@ class BoardView
       margin = 2
       @context.fillText square.coord, square.fileIdx*squareSize+margin, (9-square.rank)*squareSize-margin
    
-  show: ->
+  clear: ->
+    @context.clearRect(0, 0, @canvas.width, @canvas.height)
+
+  draw: =>
+    @clear()
     @drawBoard()
-    @drawKnight()
     @drawHopNumbers @board.calculateHopNumbers()
+    @drawKnight()
+    if @showPathsTo
+      @drawPaths @board.calculatePaths(@showPathsTo)
 
   drawPaths: (paths) ->
     step = 0
@@ -152,6 +159,13 @@ class BoardView
 
   drawKnight: () ->
     squareSize = @squareSize()
+    half = Math.floor squareSize / 2
+    if @draging and @mouseCoords
+      x = Math.max(0, @mouseCoords.x - half)
+      y = Math.max(0, @mouseCoords.y - half)
+      @context.drawImage @image, x, y, squareSize, squareSize
+      return
+
     knightSquare = @board.knightSquare
     @context.drawImage @image, squareSize * knightSquare.fileIdx, squareSize * (8-knightSquare.rank), squareSize, squareSize
 
@@ -177,7 +191,6 @@ class BoardView
     #size = minSize + (6-hopNo) * Math.floor((maxSize-minSize)/5)
 
     size = Math.floor(squareSize / 2)
-    console.log hopNo, size
     @context.font = size + "px '#{@fontFamily}'"
 
     @context.fillText hopNo.toString(), square.fileIdx*squareSize + halfSquare, (8-square.rank)*squareSize + halfSquare
@@ -197,14 +210,26 @@ class BoardView
   onMouseDown: (event) =>
     coords = @canvas.relMouseCoords event
     square = @coordsToSquare coords
-    return if square.coord == @board.knightSquare.coord
-    @drawPaths @board.calculatePaths(square.coord)
+    if square.coord == @board.knightSquare.coord
+      @draging = true
+      @mouseCoords = @coords
+    else
+      @showPathsTo = square.coord
 
+  onMouseMove: (event) =>
+    if @draging
+      @mouseCoords = @canvas.relMouseCoords event
+ 
   onMouseUp: (event) =>
-    coords = @canvas.relMouseCoords event
-    square = @coordsToSquare coords
-    return if square.coord == @board.knightSquare.coord
-    @show()
+    if @draging
+      coords = @canvas.relMouseCoords event
+      square = @coordsToSquare coords
+      @board.knightSquare = square
+      @draging = false
+    if @showPathsTo
+      @showPathsTo = null
+    #return if square.coord == @board.knightSquare.coord
+    #@draw()
 
 
 relMouseCoords = (event) ->
@@ -231,7 +256,8 @@ HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords
 displayBoardWithKnightOn = (knightCoord) ->
   board = new Board(new Square(knightCoord))
   view = new BoardView 'myCanvas', board
-  view.show()
+  view.draw()
+  window.lastId = setInterval(view.draw, 10)
 
 KNIGHT_IMG = new Image()
 KNIGHT_IMG.src = 'img/wknight.png'

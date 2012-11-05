@@ -169,12 +169,17 @@
     function BoardView(elementId, board) {
       this.onMouseUp = __bind(this.onMouseUp, this);
 
+      this.onMouseMove = __bind(this.onMouseMove, this);
+
       this.onMouseDown = __bind(this.onMouseDown, this);
 
       this.onDblClick = __bind(this.onDblClick, this);
+
+      this.draw = __bind(this.draw, this);
       this.board = board;
       this.canvas = document.getElementById(elementId);
       this.canvas.onmousedown = this.onMouseDown;
+      this.canvas.onmousemove = this.onMouseMove;
       this.canvas.onmouseup = this.onMouseUp;
       this.canvas.ondblclick = this.onDblClick;
       this.context = this.canvas.getContext('2d');
@@ -212,10 +217,18 @@
       }
     };
 
-    BoardView.prototype.show = function() {
+    BoardView.prototype.clear = function() {
+      return this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    };
+
+    BoardView.prototype.draw = function() {
+      this.clear();
       this.drawBoard();
+      this.drawHopNumbers(this.board.calculateHopNumbers());
       this.drawKnight();
-      return this.drawHopNumbers(this.board.calculateHopNumbers());
+      if (this.showPathsTo) {
+        return this.drawPaths(this.board.calculatePaths(this.showPathsTo));
+      }
     };
 
     BoardView.prototype.drawPaths = function(paths) {
@@ -268,8 +281,15 @@
     };
 
     BoardView.prototype.drawKnight = function() {
-      var knightSquare, squareSize;
+      var half, knightSquare, squareSize, x, y;
       squareSize = this.squareSize();
+      half = Math.floor(squareSize / 2);
+      if (this.draging && this.mouseCoords) {
+        x = Math.max(0, this.mouseCoords.x - half);
+        y = Math.max(0, this.mouseCoords.y - half);
+        this.context.drawImage(this.image, x, y, squareSize, squareSize);
+        return;
+      }
       knightSquare = this.board.knightSquare;
       return this.context.drawImage(this.image, squareSize * knightSquare.fileIdx, squareSize * (8 - knightSquare.rank), squareSize, squareSize);
     };
@@ -298,7 +318,6 @@
       squareSize = this.squareSize();
       halfSquare = squareSize / 2;
       size = Math.floor(squareSize / 2);
-      console.log(hopNo, size);
       this.context.font = size + ("px '" + this.fontFamily + "'");
       return this.context.fillText(hopNo.toString(), square.fileIdx * squareSize + halfSquare, (8 - square.rank) * squareSize + halfSquare);
     };
@@ -326,19 +345,30 @@
       coords = this.canvas.relMouseCoords(event);
       square = this.coordsToSquare(coords);
       if (square.coord === this.board.knightSquare.coord) {
-        return;
+        this.draging = true;
+        return this.mouseCoords = this.coords;
+      } else {
+        return this.showPathsTo = square.coord;
       }
-      return this.drawPaths(this.board.calculatePaths(square.coord));
+    };
+
+    BoardView.prototype.onMouseMove = function(event) {
+      if (this.draging) {
+        return this.mouseCoords = this.canvas.relMouseCoords(event);
+      }
     };
 
     BoardView.prototype.onMouseUp = function(event) {
       var coords, square;
-      coords = this.canvas.relMouseCoords(event);
-      square = this.coordsToSquare(coords);
-      if (square.coord === this.board.knightSquare.coord) {
-        return;
+      if (this.draging) {
+        coords = this.canvas.relMouseCoords(event);
+        square = this.coordsToSquare(coords);
+        this.board.knightSquare = square;
+        this.draging = false;
       }
-      return this.show();
+      if (this.showPathsTo) {
+        return this.showPathsTo = null;
+      }
     };
 
     return BoardView;
@@ -372,7 +402,8 @@
     var board, view;
     board = new Board(new Square(knightCoord));
     view = new BoardView('myCanvas', board);
-    return view.show();
+    view.draw();
+    return window.lastId = setInterval(view.draw, 10);
   };
 
   KNIGHT_IMG = new Image();
