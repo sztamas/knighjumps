@@ -191,6 +191,8 @@
       this.showCoordinates = false;
       this.fontFamily = 'Sanchez';
       this.image = KNIGHT_IMG;
+      this.pathsToShowIdx = -1;
+      this.pathsToShowIdx2 = 0;
     }
 
     BoardView.prototype.color = function(type) {
@@ -226,8 +228,22 @@
       this.drawBoard();
       this.drawHopNumbers(this.board.calculateHopNumbers());
       this.drawKnight();
-      if (this.showPathsTo) {
-        return this.drawPaths(this.board.calculatePaths(this.showPathsTo));
+      if (this.pathsToShow) {
+        if (this.pathsToShowIdx === -1) {
+          this.drawPaths(this.pathsToShow);
+        } else {
+          this.drawPaths(this.pathsToShow.slice(this.pathsToShowIdx, this.pathsToShowIdx + 1 || 9e9));
+        }
+        if (this.pathsToShowIdx2 < 30) {
+          return this.pathsToShowIdx2 += 1;
+        } else {
+          if (this.pathsToShowIdx >= this.pathsToShow.length - 1) {
+            this.pathsToShowIdx = -1;
+          } else {
+            this.pathsToShowIdx += 1;
+          }
+          return this.pathsToShowIdx2 = 0;
+        }
       }
     };
 
@@ -348,7 +364,9 @@
         this.draging = true;
         return this.mouseCoords = this.coords;
       } else {
-        return this.showPathsTo = square.coord;
+        this.pathsToShowIdx = -1;
+        this.pathsToShowIdx2 = 0;
+        return this.pathsToShow = this.board.calculatePaths(square.coord);
       }
     };
 
@@ -366,8 +384,9 @@
         this.board.knightSquare = square;
         this.draging = false;
       }
-      if (this.showPathsTo) {
-        return this.showPathsTo = null;
+      if (this.pathsToShow) {
+        this.pathsToShow = null;
+        return this.pathsToShowIdx = -1;
       }
     };
 

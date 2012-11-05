@@ -92,6 +92,9 @@ class BoardView
 
     @image = KNIGHT_IMG
   
+    @pathsToShowIdx = -1
+    @pathsToShowIdx2 = 0
+
   color: (type) ->
     @colorscheme[type]
  
@@ -122,8 +125,19 @@ class BoardView
     @drawBoard()
     @drawHopNumbers @board.calculateHopNumbers()
     @drawKnight()
-    if @showPathsTo
-      @drawPaths @board.calculatePaths(@showPathsTo)
+    if @pathsToShow
+      if @pathsToShowIdx == -1
+        @drawPaths @pathsToShow
+      else
+        @drawPaths @pathsToShow[@pathsToShowIdx..@pathsToShowIdx]
+      if @pathsToShowIdx2 < 30
+        @pathsToShowIdx2 += 1
+      else
+        if @pathsToShowIdx >= @pathsToShow.length-1
+          @pathsToShowIdx = -1
+        else
+          @pathsToShowIdx += 1
+        @pathsToShowIdx2 = 0
 
   drawPaths: (paths) ->
     step = 0
@@ -214,7 +228,9 @@ class BoardView
       @draging = true
       @mouseCoords = @coords
     else
-      @showPathsTo = square.coord
+      @pathsToShowIdx = -1
+      @pathsToShowIdx2 = 0
+      @pathsToShow = @board.calculatePaths square.coord
 
   onMouseMove: (event) =>
     if @draging
@@ -226,10 +242,9 @@ class BoardView
       square = @coordsToSquare coords
       @board.knightSquare = square
       @draging = false
-    if @showPathsTo
-      @showPathsTo = null
-    #return if square.coord == @board.knightSquare.coord
-    #@draw()
+    if @pathsToShow
+      @pathsToShow = null
+      @pathsToShowIdx = -1
 
 
 relMouseCoords = (event) ->
