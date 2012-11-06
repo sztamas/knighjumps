@@ -1,9 +1,11 @@
 
+FILES = 'abcdefgh'
+
 class Square
   constructor: (coord) ->
     @coord = coord
     @file = coord[0]
-    @fileIdx = 'abcdefgh'.indexOf(@file)
+    @fileIdx = FILES.indexOf(@file)
     @rank = parseInt(coord[1])
     @rankIdx = @rank - 1
 
@@ -24,17 +26,16 @@ class Board
 
   initSquares: ->
     squares = []
-    files = "abcdefgh"
     ranks = [1..8]
     for rank in ranks
-      for file in files
+      for file in FILES
         squares.push new Square(file + rank)
     return squares
 
   allKnightMoves: (from) ->
     result = []
     diffs = ([from.fileIdx + diff[0], from.rank + diff[1]] for diff in [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]])
-    validCoords = ('abcdefgh'[diff[0]] + diff[1] for diff in diffs when 0 <= diff[0] < 8 and 0 < diff[1] <= 8)
+    validCoords = (FILES[diff[0]] + diff[1] for diff in diffs when 0 <= diff[0] < 8 and 0 < diff[1] <= 8)
     return validCoords
 
   calculateHopNumbers: ->
@@ -76,9 +77,7 @@ class BoardView
     @board = board
     @canvas = document.getElementById elementId
     @canvas.onmousedown = @onMouseDown
-    @canvas.onmousemove = @onMouseMove
     @canvas.onmouseup = @onMouseUp
-    @canvas.ondblclick = @onDblClick
     @context = @canvas.getContext '2d'
     @colorscheme =
       DARK_SQUARE: '#a65400'
@@ -140,13 +139,11 @@ class BoardView
         @pathsToShowIdx2 = 0
 
   drawPaths: (paths) ->
-    step = 0
     for path in paths
       prev = path[0]
       for square in path[1..]
-        @drawLine prev, square, "rgba(#{10+step*30}, #{133-step*20}, 62, .6)"
+        @drawLine prev, square, "rgba(10, 133, 62, .6)"
         prev = square
-      step += 1
 
   squareCentre: (square) ->
     squareSize = @squareSize()
@@ -213,19 +210,14 @@ class BoardView
     squareSize = @squareSize()
     fileIdx = Math.floor(coords.x / squareSize)
     rank = 8 - Math.floor(coords.y / squareSize)
-    new Square 'abcdefgh'[fileIdx] + rank
+    new Square FILES[fileIdx] + rank
     
-  onDblClick: (event) =>
-    coords = @canvas.relMouseCoords event
-    square = @coordsToSquare coords
-    return if square.coord == @board.knightSquare
-    displayBoardWithKnightOn square.coord
-
   onMouseDown: (event) =>
     coords = @canvas.relMouseCoords event
     square = @coordsToSquare coords
     if square.coord == @board.knightSquare.coord
       @draging = true
+      @canvas.onmousemove = @onMouseMove
       @mouseCoords = @coords
     else
       @pathsToShowIdx = -1
@@ -241,10 +233,10 @@ class BoardView
       coords = @canvas.relMouseCoords event
       square = @coordsToSquare coords
       @board.knightSquare = square
-      @draging = false
-    if @pathsToShow
-      @pathsToShow = null
-      @pathsToShowIdx = -1
+    @draging = false
+    @canvas.onmousemove = null
+    @pathsToShow = null
+    @pathsToShowIdx = -1
 
 
 relMouseCoords = (event) ->
