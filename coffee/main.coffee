@@ -34,8 +34,8 @@ class Board
 
   allKnightMoves: (from) ->
     result = []
-    diffs = ([from.fileIdx + diff[0], from.rank + diff[1]] for diff in [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]])
-    validCoords = (FILES[diff[0]] + diff[1] for diff in diffs when 0 <= diff[0] < 8 and 0 < diff[1] <= 8)
+    coords = ([from.fileIdx + distance[0], from.rank + distance[1]] for distance in [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]])
+    validCoords = (FILES[coord[0]] + coord[1] for coord in coords when 0 <= coord[0] < 8 and 0 < coord[1] <= 8)
     return validCoords
 
   calculateHopNumbers: ->
@@ -59,16 +59,16 @@ class Board
         [@knightSquare]
     ]
 
-    toReached = false
-    while not toReached
-      morePaths = []
+    endPointReached = false
+    while not endPointReached
+      newPaths = []
       for path in paths
         for coord in @allKnightMoves(path[path.length-1])
           newPath = path[..]
           newPath.push(new Square(coord))
-          morePaths.push newPath
-          toReached = true if to == coord
-      paths = morePaths
+          newPaths.push newPath
+          endPointReached = true if to == coord
+      paths = newPaths
     return (path for path in paths when path[path.length-1].coord == to)
 
 
@@ -160,8 +160,6 @@ class BoardView
     @context.lineWidth = 8
     @context.strokeStyle = color
     @context.fillStyle = color
-    #@context.strokeStyle = 'rgba(88,133,62,.6)'
-    #@context.fillStyle = 'rgba(88,133,62,.9)'
     drawArrow @context, startPoint.x, startPoint.y, endPoint.x, endPoint.y, 1, 1, Math.PI/8, 25
 
   drawBoard: ->
@@ -197,10 +195,6 @@ class BoardView
     squareSize = @squareSize()
     halfSquare = squareSize/2
  
-    #maxSize = 50
-    #minSize = 15
-    #size = minSize + (6-hopNo) * Math.floor((maxSize-minSize)/5)
-
     size = Math.floor(squareSize / 2)
     @context.font = size + "px '#{@fontFamily}'"
 
@@ -272,6 +266,3 @@ KNIGHT_IMG.src = 'img/wknight.png'
 window.main = ->
   displayBoardWithKnightOn 'e4'
 
-#main()
-
-#setTimeout main, 1000

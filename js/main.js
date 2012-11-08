@@ -57,25 +57,25 @@
     };
 
     Board.prototype.allKnightMoves = function(from) {
-      var diff, diffs, result, validCoords;
+      var coord, coords, distance, result, validCoords;
       result = [];
-      diffs = (function() {
+      coords = (function() {
         var _i, _len, _ref, _results;
         _ref = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          diff = _ref[_i];
-          _results.push([from.fileIdx + diff[0], from.rank + diff[1]]);
+          distance = _ref[_i];
+          _results.push([from.fileIdx + distance[0], from.rank + distance[1]]);
         }
         return _results;
       })();
       validCoords = (function() {
         var _i, _len, _ref, _ref1, _results;
         _results = [];
-        for (_i = 0, _len = diffs.length; _i < _len; _i++) {
-          diff = diffs[_i];
-          if ((0 <= (_ref = diff[0]) && _ref < 8) && (0 < (_ref1 = diff[1]) && _ref1 <= 8)) {
-            _results.push(FILES[diff[0]] + diff[1]);
+        for (_i = 0, _len = coords.length; _i < _len; _i++) {
+          coord = coords[_i];
+          if ((0 <= (_ref = coord[0]) && _ref < 8) && (0 < (_ref1 = coord[1]) && _ref1 <= 8)) {
+            _results.push(FILES[coord[0]] + coord[1]);
           }
         }
         return _results;
@@ -128,11 +128,11 @@
     };
 
     Board.prototype.calculatePaths = function(to) {
-      var coord, morePaths, newPath, path, paths, toReached, _i, _j, _len, _len1, _ref;
+      var coord, endPointReached, newPath, newPaths, path, paths, _i, _j, _len, _len1, _ref;
       paths = [[this.knightSquare]];
-      toReached = false;
-      while (!toReached) {
-        morePaths = [];
+      endPointReached = false;
+      while (!endPointReached) {
+        newPaths = [];
         for (_i = 0, _len = paths.length; _i < _len; _i++) {
           path = paths[_i];
           _ref = this.allKnightMoves(path[path.length - 1]);
@@ -140,13 +140,13 @@
             coord = _ref[_j];
             newPath = path.slice(0);
             newPath.push(new Square(coord));
-            morePaths.push(newPath);
+            newPaths.push(newPath);
             if (to === coord) {
-              toReached = true;
+              endPointReached = true;
             }
           }
         }
-        paths = morePaths;
+        paths = newPaths;
       }
       return (function() {
         var _k, _len2, _results;
