@@ -232,15 +232,18 @@
           this.drawPaths(this.pathsToShow.slice(this.pathsToShowIdx, this.pathsToShowIdx + 1 || 9e9));
         }
         if (this.pathsToShowIdx2 < 100) {
-          return this.pathsToShowIdx2 += 1;
+          this.pathsToShowIdx2 += 1;
         } else {
           if (this.pathsToShowIdx >= this.pathsToShow.length - 1) {
             this.pathsToShowIdx = -1;
           } else {
             this.pathsToShowIdx += 1;
           }
-          return this.pathsToShowIdx2 = 0;
+          this.pathsToShowIdx2 = 0;
         }
+      }
+      if (this.draging || this.pathsToShow) {
+        return setTimeout(this.draw, 10);
       }
     };
 
@@ -353,12 +356,13 @@
       if (square.coord === this.board.knightSquare.coord) {
         this.draging = true;
         this.canvas.onmousemove = this.onMouseMove;
-        return this.mouseCoords = this.coords;
+        this.mouseCoords = this.coords;
       } else {
         this.pathsToShowIdx = -1;
         this.pathsToShowIdx2 = 0;
-        return this.pathsToShow = this.board.calculatePaths(square.coord);
+        this.pathsToShow = this.board.calculatePaths(square.coord);
       }
+      return setTimeout(this.draw, 10);
     };
 
     BoardView.prototype.onMouseMove = function(event) {
@@ -412,7 +416,7 @@
     board = new Board(new Square(knightCoord));
     view = new BoardView('myCanvas', board);
     view.draw();
-    return window.lastId = setInterval(view.draw, 10);
+    return setTimeout(view.draw, 10);
   };
 
   KNIGHT_IMG = new Image();

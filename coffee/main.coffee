@@ -137,6 +137,8 @@ class BoardView
         else
           @pathsToShowIdx += 1
         @pathsToShowIdx2 = 0
+    if @draging or @pathsToShow
+      setTimeout @draw, 10
 
   drawPaths: (paths) ->
     for path in paths
@@ -217,6 +219,7 @@ class BoardView
       @pathsToShowIdx = -1
       @pathsToShowIdx2 = 0
       @pathsToShow = @board.calculatePaths square.coord
+    setTimeout @draw, 10
 
   onMouseMove: (event) =>
     if @draging
@@ -258,7 +261,7 @@ displayBoardWithKnightOn = (knightCoord) ->
   board = new Board(new Square(knightCoord))
   view = new BoardView 'myCanvas', board
   view.draw()
-  window.lastId = setInterval(view.draw, 10)
+  setTimeout view.draw, 10
 
 KNIGHT_IMG = new Image()
 KNIGHT_IMG.src = 'img/wknight.png'
