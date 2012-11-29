@@ -1,5 +1,7 @@
 
 FILES = 'abcdefgh'
+SHOW_PATHS_FOR = 2000
+
 
 class Square
   constructor: (coord) ->
@@ -91,8 +93,8 @@ class BoardView
 
     @image = KNIGHT_IMG
   
+    @showingPaths = false
     @pathsToShowIdx = -1
-    @pathsToShowIdx2 = 0
 
   color: (type) ->
     @colorscheme[type]
@@ -124,21 +126,22 @@ class BoardView
     @drawBoard()
     @drawHopNumbers @board.calculateHopNumbers()
     @drawKnight()
-    if @pathsToShow
-      if @pathsToShowIdx == -1
-        @drawPaths @pathsToShow
-      else
-        @drawPaths @pathsToShow[@pathsToShowIdx..@pathsToShowIdx]
-      if @pathsToShowIdx2 < 100
-        @pathsToShowIdx2 += 1
-      else
-        if @pathsToShowIdx >= @pathsToShow.length-1
-          @pathsToShowIdx = -1
-        else
-          @pathsToShowIdx += 1
-        @pathsToShowIdx2 = 0
-    if @draging or @pathsToShow
+    if @showingPaths
+       if not @pathsDrawnAt or @pathsDrawnAt < (new Date() - SHOW_PATHS_FOR)
+         @pathsDrawnAt = new Date() - 0
+         @incPathToShowIdx()
+       if @pathsToShowIdx == -1
+         @drawPaths @pathsToShow
+       else
+         @drawPaths @pathsToShow[@pathsToShowIdx..@pathsToShowIdx]
+    if @dragging or @showingPaths
       setTimeout @draw, 10
+
+  incPathToShowIdx: =>
+    @pathsToShowIdx += 1
+    if @pathsToShowIdx >= @pathsToShow.length-1
+      @pathsToShowIdx = -1
+    
 
   drawPaths: (paths) ->
     for path in paths
@@ -171,7 +174,7 @@ class BoardView
   drawKnight: () ->
     squareSize = @squareSize()
     half = Math.floor squareSize / 2
-    if @draging and @mouseCoords
+    if @dragging and @mouseCoords
       x = Math.max(0, @mouseCoords.x - half)
       y = Math.max(0, @mouseCoords.y - half)
       @context.drawImage @image, x, y, squareSize, squareSize
@@ -212,28 +215,29 @@ class BoardView
     coords = @canvas.relMouseCoords event
     square = @coordsToSquare coords
     if square.coord == @board.knightSquare.coord
-      @draging = true
+      @dragging = true
       @canvas.onmousemove = @onMouseMove
       @mouseCoords = @coords
     else
-      @pathsToShowIdx = -1
-      @pathsToShowIdx2 = 0
+      @pathsToShowIdx = -2
       @pathsToShow = @board.calculatePaths square.coord
+      console.log @pathsToShow.length
+      @showingPaths = true
     setTimeout @draw, 10
 
   onMouseMove: (event) =>
-    if @draging
+    if @dragging
       @mouseCoords = @canvas.relMouseCoords event
  
   onMouseUp: (event) =>
-    if @draging
+    if @dragging
       coords = @canvas.relMouseCoords event
       square = @coordsToSquare coords
       @board.knightSquare = square
-    @draging = false
+    @dragging = false
+    @showingPaths = false
+    @pathsDrawnAt = null
     @canvas.onmousemove = null
-    @pathsToShow = null
-    @pathsToShowIdx = -1
 
 
 relMouseCoords = (event) ->
