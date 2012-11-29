@@ -365,7 +365,6 @@
       } else {
         this.pathsToShowIdx = -2;
         this.pathsToShow = this.board.calculatePaths(square.coord);
-        console.log(this.pathsToShow.length);
         this.showingPaths = true;
       }
       return setTimeout(this.draw, 10);

@@ -221,7 +221,6 @@ class BoardView
     else
       @pathsToShowIdx = -2
       @pathsToShow = @board.calculatePaths square.coord
-      console.log @pathsToShow.length
       @showingPaths = true
     setTimeout @draw, 10
 
