@@ -139,7 +139,7 @@ class BoardView
 
   incPathToShowIdx: =>
     @pathsToShowIdx += 1
-    if @pathsToShowIdx >= @pathsToShow.length-1
+    if @pathsToShowIdx >= @pathsToShow.length
       @pathsToShowIdx = -1
     
 
