@@ -1,3 +1,5 @@
+root = exports ? this
+
 
 FILES = 'abcdefgh'
 SHOW_PATHS_FOR = 2000
@@ -150,6 +152,7 @@ class BoardView
         @drawLine prev, square, "rgba(10, 133, 62, .6)"
         prev = square
 
+
   squareCentre: (square) ->
     squareSize = @squareSize()
     half = squareSize / 2
@@ -158,6 +161,7 @@ class BoardView
       y: (8-square.rank)* squareSize + half
     }
 
+
   drawLine: (from, to, color) ->
     startPoint = @squareCentre from
     endPoint = @squareCentre to
@@ -165,7 +169,16 @@ class BoardView
     @context.lineWidth = 8
     @context.strokeStyle = color
     @context.fillStyle = color
-    drawArrow @context, startPoint.x, startPoint.y, endPoint.x, endPoint.y, 1, 1, Math.PI/8, 25
+    @context.beginPath()
+
+    lineArrowJoinPoint = calculateLineArrowJoinPoint(startPoint, endPoint)
+
+    @context.moveTo startPoint.x, startPoint.y
+    @context.lineTo lineArrowJoinPoint.x, lineArrowJoinPoint.y
+
+    @context.stroke()
+    drawArrow(@context, startPoint, endPoint)
+    
 
   drawBoard: ->
     for square in @board.squares()
@@ -269,6 +282,5 @@ displayBoardWithKnightOn = (knightCoord) ->
 KNIGHT_IMG = new Image()
 KNIGHT_IMG.src = 'img/wknight.png'
  
-window.main = ->
+root.main = ->
   displayBoardWithKnightOn 'e4'
-
