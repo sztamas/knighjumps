@@ -304,8 +304,7 @@ displayBoardWithKnightOn = (knightCoord) ->
   KNIGHT_IMG.src = 'img/wknight.png'
   board = new Board(new Square(knightCoord))
   view = new BoardView 'myCanvas', board
-  view.draw()
-  KNIGHT_IMG.onLoad = ->
+  KNIGHT_IMG.onload = ->
     view.draw()
  
 root.main = ->

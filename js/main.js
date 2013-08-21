@@ -464,8 +464,7 @@
     KNIGHT_IMG.src = 'img/wknight.png';
     board = new Board(new Square(knightCoord));
     view = new BoardView('myCanvas', board);
-    view.draw();
-    return KNIGHT_IMG.onLoad = function() {
+    return KNIGHT_IMG.onload = function() {
       return view.draw();
     };
   };
