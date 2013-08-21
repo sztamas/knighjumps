@@ -182,9 +182,10 @@
       this.colorscheme = {
         DARK_SQUARE: '#a65400',
         LIGHT_SQUARE: '#ffbf73',
-        COORD_TEXT: 'darkgrey'
+        DARK_SQUARE_TEXT: 'darkgrey',
+        LIGHT_SQUARE_TEXT: '#7d2c17'
       };
-      this.showCoordinates = false;
+      this.showCoordinates = true;
       this.fontFamily = 'Sanchez';
       this.image = KNIGHT_IMG;
       this.showingPaths = false;
@@ -200,19 +201,63 @@
     };
 
     BoardView.prototype.drawSquare = function(square) {
-      var margin, squareColor, squareSize;
+      var squareColor, squareSize;
       squareSize = this.squareSize();
       squareColor = square.isLight() ? 'LIGHT_SQUARE' : 'DARK_SQUARE';
       this.context.fillStyle = this.color(squareColor);
       this.context.fillRect(square.fileIdx * squareSize, (8 - square.rank) * squareSize, squareSize, squareSize);
       if (this.showCoordinates) {
-        this.context.fillStyle = this.color("COORD_TEXT");
-        this.context.textAlign = "left";
-        this.context.textBaseline = "bottom";
-        this.context.font = "12px Colibri";
-        margin = 2;
-        return this.context.fillText(square.coord, square.fileIdx * squareSize + margin, (9 - square.rank) * squareSize - margin);
+        if (square.rank === 1) {
+          this.showFileCoord(square);
+        }
+        if (square.file === 'a') {
+          return this.showRankCoord(square);
+        }
       }
+    };
+
+    BoardView.prototype.drawSquareText = function(square, hAlign, vAlign, font, color, margin, text) {
+      var squareSize, x, y;
+      squareSize = this.squareSize();
+      this.context.fillStyle = color;
+      this.context.font = font;
+      this.context.textAlign = hAlign;
+      this.context.textBaseline = vAlign;
+      if (hAlign === 'left') {
+        x = (square.fileIdx * squareSize) + margin;
+      } else if (hAlign === 'right') {
+        x = ((square.fileIdx + 1) * squareSize) - margin;
+      } else if (hAlign === 'center') {
+        x = (square.fileIdx * squareSize) + squareSize / 2;
+      } else {
+        throw "Invalid hAlign '" + hAlign + "'";
+      }
+      if (vAlign === 'top') {
+        y = ((8 - square.rank) * squareSize) + margin;
+      } else if (vAlign === 'bottom') {
+        y = ((9 - square.rank) * squareSize) - margin;
+      } else if (vAlign === 'middle') {
+        y = ((8 - square.rank) * squareSize) + squareSize / 2;
+      } else {
+        throw "Invalid vAlign '" + vAlign + "'";
+      }
+      return this.context.fillText(text, x, y);
+    };
+
+    BoardView.prototype.coordTextColor = function(square) {
+      return this.color((square.isDark() ? 'LIGHT_SQUARE' : 'DARK_SQUARE'));
+    };
+
+    BoardView.prototype.showFileCoord = function(square) {
+      var textColor;
+      textColor = this.coordTextColor(square);
+      return this.drawSquareText(square, "right", "bottom", "12px Colibri", textColor, 2, square.file);
+    };
+
+    BoardView.prototype.showRankCoord = function(square) {
+      var textColor;
+      textColor = this.coordTextColor(square);
+      return this.drawSquareText(square, "left", "top", "12px Colibri", textColor, 2, square.rank);
     };
 
     BoardView.prototype.clear = function() {
@@ -331,19 +376,15 @@
     };
 
     BoardView.prototype.drawHopNumber = function(square, hopNo) {
-      var halfSquare, size, squareSize;
-      this.context.textAlign = "center";
-      this.context.textBaseline = "middle";
+      var color, font, size;
       if (square.isLight()) {
-        this.context.fillStyle = "#7d2c17";
+        color = this.color('LIGHT_SQUARE_TEXT');
       } else {
-        this.context.fillStyle = "darkgrey";
+        color = this.color('DARK_SQUARE_TEXT');
       }
-      squareSize = this.squareSize();
-      halfSquare = squareSize / 2;
-      size = Math.floor(squareSize / 2);
-      this.context.font = size + ("px '" + this.fontFamily + "'");
-      return this.context.fillText(hopNo.toString(), square.fileIdx * squareSize + halfSquare, (8 - square.rank) * squareSize + halfSquare);
+      size = Math.floor(this.squareSize() / 2);
+      font = size + ("px '" + this.fontFamily + "'");
+      return this.drawSquareText(square, "center", "middle", font, color, 0, hopNo.toString());
     };
 
     BoardView.prototype.coordsToSquare = function(coords) {
@@ -416,17 +457,18 @@
 
   HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
 
+  KNIGHT_IMG = new Image();
+
   displayBoardWithKnightOn = function(knightCoord) {
     var board, view;
+    KNIGHT_IMG.src = 'img/wknight.png';
     board = new Board(new Square(knightCoord));
     view = new BoardView('myCanvas', board);
     view.draw();
-    return setTimeout(view.draw, 10);
+    return KNIGHT_IMG.onLoad = function() {
+      return view.draw();
+    };
   };
-
-  KNIGHT_IMG = new Image();
-
-  KNIGHT_IMG.src = 'img/wknight.png';
 
   root.main = function() {
     return displayBoardWithKnightOn('e4');

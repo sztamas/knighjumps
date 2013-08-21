@@ -86,11 +86,9 @@ class BoardView
     @colorscheme =
       DARK_SQUARE: '#a65400'
       LIGHT_SQUARE: '#ffbf73'
-      #DARK_SQUARE: 'black'
-      #LIGHT_SQUARE: 'white'
-      COORD_TEXT: 'darkgrey'
-    @showCoordinates = false
-    #@showCoordinates = true
+      DARK_SQUARE_TEXT: 'darkgrey'
+      LIGHT_SQUARE_TEXT: '#7d2c17'
+    @showCoordinates = true
     @fontFamily = 'Sanchez'
 
     @image = KNIGHT_IMG
@@ -112,14 +110,49 @@ class BoardView
     @context.fillRect square.fileIdx*squareSize, (8-square.rank)*squareSize, squareSize, squareSize
 
     if @showCoordinates
-      # TODO extract method
-      @context.fillStyle = @color "COORD_TEXT"
-      @context.textAlign = "left"
-      @context.textBaseline = "bottom"
-      @context.font = "12px Colibri"
-      margin = 2
-      @context.fillText square.coord, square.fileIdx*squareSize+margin, (9-square.rank)*squareSize-margin
-   
+      if square.rank == 1
+        @showFileCoord square 
+      if square.file == 'a'
+        @showRankCoord square
+
+  drawSquareText: (square, hAlign, vAlign, font, color, margin, text) ->
+    squareSize = @squareSize()
+    @context.fillStyle = color
+    @context.font = font
+    @context.textAlign = hAlign
+    @context.textBaseline = vAlign
+    if hAlign == 'left'
+      x = (square.fileIdx * squareSize) + margin
+    else if hAlign == 'right'
+      x = ((square.fileIdx+1) * squareSize) - margin
+    else if hAlign == 'center'
+      x = (square.fileIdx * squareSize) + squareSize/2
+    else
+      throw "Invalid hAlign '#{hAlign}'"
+
+    if vAlign == 'top'
+      y = ((8-square.rank) * squareSize) + margin
+    else if vAlign == 'bottom'
+      y = ((9-square.rank) * squareSize) - margin
+    else if vAlign == 'middle'
+      y = ((8-square.rank) * squareSize) + squareSize/2
+    else
+      throw "Invalid vAlign '#{vAlign}'"
+      
+    @context.fillText text, x, y
+
+
+  coordTextColor: (square) ->
+     @color (if square.isDark() then 'LIGHT_SQUARE' else 'DARK_SQUARE')
+
+  showFileCoord: (square) ->
+    textColor = @coordTextColor(square)
+    @drawSquareText square, "right", "bottom", "12px Colibri", textColor, 2, square.file
+
+  showRankCoord: (square) ->
+    textColor = @coordTextColor(square)
+    @drawSquareText square, "left", "top", "12px Colibri", textColor, 2, square.rank
+
   clear: ->
     @context.clearRect(0, 0, @canvas.width, @canvas.height)
 
@@ -201,22 +234,15 @@ class BoardView
       @drawHopNumber new Square(squareCoord), hopNo
 
   drawHopNumber: (square, hopNo) ->
-    @context.textAlign = "center"
-    @context.textBaseline = "middle"
-
     if square.isLight()
-      @context.fillStyle = "#7d2c17"
+      color = @color 'LIGHT_SQUARE_TEXT'
     else
-      #@context.fillStyle = "#7d2c17"
-      @context.fillStyle = "darkgrey"
+      color = @color 'DARK_SQUARE_TEXT'
 
-    squareSize = @squareSize()
-    halfSquare = squareSize/2
- 
-    size = Math.floor(squareSize / 2)
-    @context.font = size + "px '#{@fontFamily}'"
+    size = Math.floor(@squareSize() / 2)
+    font = size + "px '#{@fontFamily}'"
 
-    @context.fillText hopNo.toString(), square.fileIdx*squareSize + halfSquare, (8-square.rank)*squareSize + halfSquare
+    @drawSquareText square, "center", "middle", font, color, 0, hopNo.toString()
   
   coordsToSquare: (coords) ->
     squareSize = @squareSize()
@@ -273,14 +299,16 @@ relMouseCoords = (event) ->
 HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords
 
 
+KNIGHT_IMG = new Image()
+
 displayBoardWithKnightOn = (knightCoord) ->
+  KNIGHT_IMG.src = 'img/wknight.png'
   board = new Board(new Square(knightCoord))
   view = new BoardView 'myCanvas', board
   view.draw()
-  setTimeout view.draw, 10
-
-KNIGHT_IMG = new Image()
-KNIGHT_IMG.src = 'img/wknight.png'
+  KNIGHT_IMG.onLoad = ->
+    view.draw()
  
 root.main = ->
   displayBoardWithKnightOn 'e4'
+
