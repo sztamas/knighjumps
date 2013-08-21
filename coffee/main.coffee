@@ -211,7 +211,6 @@ class BoardView
 
     @context.stroke()
     drawArrow(@context, startPoint, endPoint)
-    
 
   drawBoard: ->
     for square in @board.squares()
